@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package brpc.test;
+
+option cc_generic_services = true;
+option java_generic_services = true;
+option go_package = "github.com/icexin/brpc-go/example/echo";
+
+message EchoRequest {
+    string message = 1;
+}
+
+message EchoResponse {
+    string message = 1;
+}
+
+service EchoServer {
+    rpc Echo(EchoRequest) returns(EchoResponse);
+}

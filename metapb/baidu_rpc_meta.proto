@@ -1,0 +1,63 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+syntax="proto3";
+import "streaming_rpc_meta.proto";
+
+package brpc.policy;
+option java_package="com.brpc.policy";
+option java_outer_classname="BaiduRpcProto";
+option go_package="github.com/icexin/brpc-go/metapb";
+
+enum CompressType {
+    COMPRESS_TYPE_NONE = 0;
+    COMPRESS_TYPE_SNAPPY = 1;
+    COMPRESS_TYPE_GZIP = 2;
+    COMPRESS_TYPE_ZLIB = 3;
+    COMPRESS_TYPE_LZ4 = 4;
+}
+
+message ChunkInfo {
+    int64 stream_id = 1;
+    int64 chunk_id = 2;
+}
+
+message RpcMeta {
+    RpcRequestMeta request = 1;
+    RpcResponseMeta response = 2;
+    int32 compress_type = 3;
+    int64 correlation_id = 4;
+    int32 attachment_size = 5;
+    ChunkInfo chunk_info = 6;
+    bytes authentication_data = 7;
+    StreamSettings stream_settings = 8;   
+}
+
+message RpcRequestMeta {
+    string service_name = 1;
+    string method_name = 2;
+    int64 log_id = 3;
+    int64 trace_id = 4;
+    int64 span_id = 5;
+    int64 parent_span_id = 6;
+    string request_id = 7; // correspond to x-request-id in http header
+}
+
+message RpcResponseMeta {
+     int32 error_code = 1;
+     string error_text = 2;
+}
