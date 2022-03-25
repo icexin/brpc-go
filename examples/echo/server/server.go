@@ -12,9 +12,9 @@ type echoService struct {
 	echo.UnimplementedEchoServerServer
 }
 
-func (s *echoService) Echo(context.Context, *echo.EchoRequest) (*echo.EchoResponse, error) {
+func (s *echoService) Echo(ctx context.Context, req *echo.EchoRequest) (*echo.EchoResponse, error) {
 	return &echo.EchoResponse{
-		Message: "hello",
+		Message: "reply: " + req.Message,
 	}, nil
 }
 

@@ -1,9 +1,7 @@
 package brpc
 
 import (
-	"log"
 	"net"
-	"reflect"
 
 	"github.com/keegancsmith/rpc"
 	"google.golang.org/grpc"
@@ -21,13 +19,6 @@ func NewServer() *Server {
 
 // RegisterService register a service and its implementation to the pbrpc server. Called from the IDL generated code. This must be called before invoking Serve.
 func (s *Server) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
-	if ss != nil {
-		ht := reflect.TypeOf(sd.HandlerType).Elem()
-		st := reflect.TypeOf(ss)
-		if !st.Implements(ht) {
-			log.Fatalf("grpc: Server.RegisterService found the handler of type %v that does not satisfy %v", st, ht)
-		}
-	}
 	s.s.RegisterName(sd.ServiceName, ss)
 }
 
