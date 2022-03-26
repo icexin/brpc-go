@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"sync"
+	"unsafe"
 
 	"github.com/icexin/brpc-go/metapb"
 	"github.com/keegancsmith/rpc"
@@ -22,6 +23,9 @@ var (
 	MagicStr          = [4]byte{'P', 'R', 'P', 'C'}
 	ErrBadMagic       = errors.New("bad magic number")
 	ErrBadMessageSize = errors.New("message size exceed")
+
+	DefaultReadBufferSize  = 12 << 10
+	DefaultWriteBufferSize = 12 << 10
 )
 
 const (
@@ -34,6 +38,12 @@ type rpcHeader struct {
 		PacketSize int32
 		MetaSize   int32
 	}
+}
+
+var writeBufferPool = sync.Pool{
+	New: func() interface{} {
+		return new(bytes.Buffer)
+	},
 }
 
 // codec is a common rpc codec for implementing rpc.ClientCodec and rpc.ServerCodec
@@ -49,14 +59,17 @@ type codec struct {
 func newCodec(conn io.ReadWriteCloser) *codec {
 	return &codec{
 		conn: conn,
-		w:    bufio.NewWriter(conn),
-		r:    bufio.NewReader(conn),
+		w:    bufio.NewWriterSize(conn, DefaultWriteBufferSize),
+		r:    bufio.NewReaderSize(conn, DefaultReadBufferSize),
 	}
 }
 
 // Write send rpc header and body to peer
 func (c *codec) Write(meta *metapb.RpcMeta, x interface{}, cw compressWriter) error {
-	buffer := new(bytes.Buffer)
+	buffer := writeBufferPool.Get().(*bytes.Buffer)
+	buffer.Reset()
+	defer writeBufferPool.Put(buffer)
+
 	metasize := proto.Size(meta)
 	h := rpcHeader{
 		Magic: MagicStr,
@@ -109,47 +122,49 @@ func (c *codec) Write(meta *metapb.RpcMeta, x interface{}, cw compressWriter) er
 	return c.w.Flush()
 }
 
-func mustDecode(r io.Reader, x interface{}) {
-	err := binary.Read(r, binary.BigEndian, x)
-	if err != nil {
-		panic(err)
+// readBuffer read next n bytes from reader.
+// if n less than the internal buffer size, then use Peek to get buffer,
+// else make a new buffer, and copy data to the new buffer.
+//
+// user must not retain the returned buffer
+func (c *codec) readBuffer(n int) ([]byte, error) {
+	if n < c.r.Size() {
+		buf, err := c.r.Peek(n)
+		if err != nil {
+			return nil, err
+		}
+		c.r.Discard(n)
+		return buf, nil
 	}
-}
-
-func mustReadFull(r io.Reader, buf []byte) {
-	_, err := io.ReadFull(r, buf)
-	if err != nil {
-		panic(err)
-	}
+	buf := make([]byte, n)
+	_, err := io.ReadFull(c.r, buf)
+	return buf, err
 }
 
 // ReadHeader read rpc header from peer
 func (c *codec) ReadHeader(meta *metapb.RpcMeta) (err error) {
-	defer func() {
-		catch := recover()
-		if catch != nil {
-			if e, ok := catch.(error); ok {
-				err = e
-			} else {
-				err = fmt.Errorf("%v", catch)
-			}
-		}
-	}()
-
 	// decode rpc header
-	mustDecode(c.r, &c.h.Magic)
-	if c.h.Magic != MagicStr {
+	headerSize := int(unsafe.Sizeof(rpcHeader{}))
+	buf, err := c.readBuffer(headerSize)
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Equal(buf[:4], MagicStr[:]) {
 		return ErrBadMagic
 	}
-	mustDecode(c.r, &c.h.X)
+	c.h.X.PacketSize = int32(binary.BigEndian.Uint32(buf[4:8]))
+	c.h.X.MetaSize = int32(binary.BigEndian.Uint32(buf[8:12]))
 
 	if c.h.X.PacketSize > maxMessageSize {
 		return ErrBadMessageSize
 	}
 
 	// decode rpc meta
-	buf := make([]byte, c.h.X.MetaSize)
-	mustReadFull(c.r, buf)
+	buf, err = c.readBuffer(int(c.h.X.MetaSize))
+	if err != nil {
+		return err
+	}
 	err = proto.Unmarshal(buf, meta)
 	if err != nil {
 		return
@@ -171,6 +186,7 @@ func (c *codec) ReadBody(x interface{}, cr compressReader) error {
 	msg := x.(proto.Message)
 
 	var buf []byte
+	var err error
 	if cr != nil {
 		// construct a compress reader
 		rc, err := cr(io.LimitReader(c.r, int64(dataSize)))
@@ -185,8 +201,7 @@ func (c *codec) ReadBody(x interface{}, cr compressReader) error {
 		}
 		rc.Close()
 	} else {
-		buf = make([]byte, dataSize)
-		_, err := io.ReadFull(c.r, buf)
+		buf, err = c.readBuffer(int(dataSize))
 		if err != nil {
 			return err
 		}
