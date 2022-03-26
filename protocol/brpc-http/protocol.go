@@ -18,5 +18,5 @@ func (p *protocol) NewServer(options ...brpc.ServerOption) brpc.Server {
 }
 
 func init() {
-	brpc.RegisterProtocol("baidu-http", &protocol{})
+	brpc.RegisterProtocol(ProtocolName, &protocol{})
 }
