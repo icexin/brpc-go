@@ -20,7 +20,7 @@ syntax="proto3";
 package brpc;
 option java_package="com.brpc";
 option java_outer_classname="StreamingRpcProto";
-option go_package="github.com/icexin/brpc-go/metapb";
+option go_package="github.com/icexin/brpc-go/protocol/brpc-std/metapb";
 
 message StreamSettings {
     int64 stream_id = 1;
