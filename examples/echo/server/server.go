@@ -6,6 +6,7 @@ import (
 
 	"github.com/icexin/brpc-go"
 	"github.com/icexin/brpc-go/examples/echo"
+	bstd "github.com/icexin/brpc-go/protocol/brpc-std"
 )
 
 type echoService struct {
@@ -22,7 +23,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	server := brpc.NewServer()
+	server := brpc.NewServer(bstd.ProtocolName)
 	echo.RegisterEchoServerServer(server, &echoService{})
 	server.Serve(l)
 }

@@ -6,10 +6,11 @@ import (
 
 	"github.com/icexin/brpc-go"
 	"github.com/icexin/brpc-go/examples/echo"
+	bstd "github.com/icexin/brpc-go/protocol/brpc-std"
 )
 
 func main() {
-	clientConn, err := brpc.Dial(context.Background(), "127.0.0.1:8080")
+	clientConn, err := brpc.Dial(bstd.ProtocolName, "127.0.0.1:8080")
 	if err != nil {
 		panic(err)
 	}

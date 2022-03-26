@@ -1,4 +1,4 @@
-package brpc
+package bstd
 
 import (
 	"bufio"
@@ -12,7 +12,7 @@ import (
 	"sync"
 	"unsafe"
 
-	"github.com/icexin/brpc-go/metapb"
+	"github.com/icexin/brpc-go/protocol/brpc-std/metapb"
 	"github.com/keegancsmith/rpc"
 	"google.golang.org/protobuf/proto"
 )
