@@ -24,8 +24,9 @@ func (c *clientConn) Invoke(ctx context.Context, method string, args interface{}
 	if err != nil {
 		return err
 	}
+	url := c.target + "/" + method
 
-	request, err := http.NewRequest("POST", c.target, bytes.NewReader(buf))
+	request, err := http.NewRequest("POST", url, bytes.NewReader(buf))
 	if err != nil {
 		return err
 	}
