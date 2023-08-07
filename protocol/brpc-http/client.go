@@ -3,6 +3,7 @@ package bhttp
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -24,7 +25,7 @@ func (c *clientConn) Invoke(ctx context.Context, method string, args interface{}
 	if err != nil {
 		return err
 	}
-	url := c.target + "/" + method
+	url := c.target + method
 
 	request, err := http.NewRequest("POST", url, bytes.NewReader(buf))
 	if err != nil {
@@ -41,6 +42,10 @@ func (c *clientConn) Invoke(ctx context.Context, method string, args interface{}
 	buf, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("http error, status:%d, body:%s", resp.StatusCode, buf)
 	}
 
 	err = proto.Unmarshal(buf, replymsg)
