@@ -1,6 +1,9 @@
 package grpc
 
-import "github.com/icexin/brpc-go"
+import (
+	"github.com/icexin/brpc-go"
+	"google.golang.org/grpc"
+)
 
 const (
 	ProtocolName = "grpc"
@@ -9,7 +12,7 @@ const (
 type protocol struct {
 }
 
-func (p *protocol) Dial(target string, options ...brpc.DialOption) (brpc.ClientConn, error) {
+func (p *protocol) Dial(target string, options ...brpc.DialOption) (grpc.ClientConnInterface, error) {
 	panic("not implemented")
 }
 

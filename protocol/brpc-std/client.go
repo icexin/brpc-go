@@ -7,6 +7,7 @@ import (
 
 	"github.com/icexin/brpc-go"
 	"github.com/keegancsmith/rpc"
+	"google.golang.org/grpc"
 )
 
 // clientConn represents a client connection to an RPC server.
@@ -27,12 +28,16 @@ func grpcMethodToBrpcMethod(method string) string {
 }
 
 // Invoke sends the RPC request on the wire and returns after response is received. Invoke is called by generated code. Also users can call Invoke directly when it is really needed in their use cases.
-func (c *clientConn) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...brpc.CallOption) error {
+func (c *clientConn) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
 	brpcMethod := grpcMethodToBrpcMethod(method)
 	return c.c.Call(ctx, brpcMethod, args, reply)
 }
 
-func dial(target string, options ...brpc.DialOption) (brpc.ClientConn, error) {
+func (c *clientConn) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	panic("not implemented")
+}
+
+func dial(target string, options ...brpc.DialOption) (grpc.ClientConnInterface, error) {
 	conn, err := net.Dial("tcp", target)
 	if err != nil {
 		return nil, err
