@@ -2,6 +2,8 @@ package brpc
 
 import (
 	"errors"
+
+	"google.golang.org/grpc"
 )
 
 var (
@@ -9,7 +11,7 @@ var (
 )
 
 // Dial creates a client connection to the given target according to the protocol.
-func Dial(protocol, target string, options ...DialOption) (ClientConn, error) {
+func Dial(protocol, target string, options ...DialOption) (grpc.ClientConnInterface, error) {
 	proto := getProtocol(protocol)
 	if proto == nil {
 		return nil, ErrProtocolNotFound

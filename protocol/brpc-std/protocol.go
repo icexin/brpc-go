@@ -2,6 +2,7 @@ package bstd
 
 import (
 	"github.com/icexin/brpc-go"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -11,7 +12,7 @@ const (
 type protocol struct {
 }
 
-func (p *protocol) Dial(target string, options ...brpc.DialOption) (brpc.ClientConn, error) {
+func (p *protocol) Dial(target string, options ...brpc.DialOption) (grpc.ClientConnInterface, error) {
 	return dial(target, options...)
 }
 

@@ -1,4 +1,4 @@
-package bhttp
+package grpc
 
 import (
 	"github.com/icexin/brpc-go"
@@ -6,14 +6,14 @@ import (
 )
 
 const (
-	ProtocolName = "brpc-http"
+	ProtocolName = "grpc"
 )
 
 type protocol struct {
 }
 
 func (p *protocol) Dial(target string, options ...brpc.DialOption) (grpc.ClientConnInterface, error) {
-	return dial(target, options...)
+	panic("not implemented")
 }
 
 func (p *protocol) NewServer(options ...brpc.ServerOption) brpc.Server {

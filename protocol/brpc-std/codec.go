@@ -94,11 +94,16 @@ func (c *codec) Write(meta *metapb.RpcMeta, x interface{}, cw compressWriter) er
 	}
 
 	// write body
-	msg := x.(proto.Message)
-	buf, err = proto.Marshal(msg)
-	if err != nil {
-		return err
+	if x != nil {
+		msg := x.(proto.Message)
+		buf, err = proto.Marshal(msg)
+		if err != nil {
+			return err
+		}
+	} else {
+		buf = []byte{}
 	}
+
 	// record the offset before we write data
 	len1 := buffer.Len()
 	if cw != nil {
@@ -175,15 +180,12 @@ func (c *codec) ReadHeader(meta *metapb.RpcMeta) (err error) {
 	return
 }
 
-// ReadBody read rpc body from peer which corresponding to last rpc header
-func (c *codec) ReadBody(x interface{}, cr compressReader) error {
+func (c *codec) ReadBodyBytes(discard bool, cr compressReader) ([]byte, error) {
 	dataSize := c.h.X.PacketSize - c.h.X.MetaSize
-	if x == nil {
+	if discard {
 		_, err := c.r.Discard(int(dataSize))
-		return err
+		return nil, err
 	}
-
-	msg := x.(proto.Message)
 
 	var buf []byte
 	var err error
@@ -191,22 +193,35 @@ func (c *codec) ReadBody(x interface{}, cr compressReader) error {
 		// construct a compress reader
 		rc, err := cr(io.LimitReader(c.r, int64(dataSize)))
 		if err != nil {
-			return err
+			return nil, err
 		}
 		// read all uncompressed data to buf
 		buf, err = ioutil.ReadAll(rc)
 		if err != nil {
 			rc.Close()
-			return err
+			return nil, err
 		}
 		rc.Close()
 	} else {
 		buf, err = c.readBuffer(int(dataSize))
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
+	return buf, nil
+}
 
+// ReadBody read rpc body from peer which corresponding to last rpc header
+func (c *codec) ReadBody(x interface{}, cr compressReader) error {
+	if x == nil {
+		_, err := c.ReadBodyBytes(true, cr)
+		return err
+	}
+	buf, err := c.ReadBodyBytes(false, cr)
+	if err != nil {
+		return err
+	}
+	msg := x.(proto.Message)
 	return proto.Unmarshal(buf, msg)
 }
 
