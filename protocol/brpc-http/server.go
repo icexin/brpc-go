@@ -116,8 +116,12 @@ func jsonEncode(v interface{}) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid type:%T", v)
 	}
-	return protojson.Marshal(msg)
+	opts := protojson.MarshalOptions{
+		UseProtoNames: true,
+	}
+	return opts.Marshal(msg)
 }
+
 func jsonDecode(buf []byte, v interface{}) error {
 	msg, ok := v.(proto.Message)
 	if !ok {
