@@ -17,7 +17,7 @@ func (p *protocol) Dial(target string, options ...brpc.DialOption) (grpc.ClientC
 }
 
 func (p *protocol) NewServer(options ...brpc.ServerOption) brpc.Server {
-	return newServer()
+	return newServer(options...)
 }
 
 func init() {

@@ -3,6 +3,7 @@ package grpc
 import (
 	"net"
 
+	"github.com/icexin/brpc-go"
 	"google.golang.org/grpc"
 )
 
@@ -10,9 +11,15 @@ type server struct {
 	grpcServer *grpc.Server
 }
 
-func newServer() *server {
+func newServer(boptions ...brpc.ServerOption) *server {
+	var options []grpc.ServerOption
+	for _, o := range boptions {
+		if opt, ok := o.(grpc.ServerOption); ok {
+			options = append(options, opt)
+		}
+	}
 	return &server{
-		grpcServer: grpc.NewServer(),
+		grpcServer: grpc.NewServer(options...),
 	}
 }
 

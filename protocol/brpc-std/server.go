@@ -9,6 +9,7 @@ import (
 	"runtime/debug"
 	"sync"
 
+	"github.com/icexin/brpc-go"
 	"github.com/icexin/brpc-go/protocol/brpc-std/metapb"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
@@ -22,11 +23,19 @@ type service struct {
 
 type server struct {
 	services map[string]*service
+	opts     *brpc.ServerOptions
 }
 
-func newServer() *server {
+func newServer(options ...brpc.ServerOption) *server {
+	var opts brpc.ServerOptions
+	for _, opt := range options {
+		if o, ok := opt.(brpc.BServerOption); ok {
+			o(&opts)
+		}
+	}
 	return &server{
 		services: make(map[string]*service),
+		opts:     &opts,
 	}
 }
 
@@ -60,7 +69,7 @@ func (s *server) ServeConn(conn net.Conn) {
 				}
 				wg.Done()
 			}()
-			resp, err := method.Handler(srv, context.Background(), dec, nil)
+			resp, err := method.Handler(srv, context.Background(), dec, s.opts.Interceptor)
 			if err != nil {
 				log.Printf("call method error:%v", err)
 			}
