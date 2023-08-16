@@ -1,12 +1,14 @@
 package bhttp
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"path"
 
+	"github.com/icexin/brpc-go"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -21,12 +23,20 @@ type service struct {
 type server struct {
 	services   map[string]*service
 	httpServer *http.Server
+	opts       *brpc.ServerOptions
 }
 
-func newServer() *server {
+func newServer(options ...brpc.ServerOption) *server {
+	var opts brpc.ServerOptions
+	for _, opt := range options {
+		if o, ok := opt.(brpc.BServerOption); ok {
+			o(&opts)
+		}
+	}
 	return &server{
 		services:   make(map[string]*service),
 		httpServer: &http.Server{},
+		opts:       &opts,
 	}
 }
 
@@ -34,6 +44,10 @@ func newServer() *server {
 // TODO Handle non fatal errors
 func (s *server) Serve(l net.Listener) error {
 	return s.httpServer.Serve(l)
+}
+
+func (s *server) Shutdown() {
+	s.httpServer.Shutdown(context.Background())
 }
 
 func (s *server) handleService(srv *service, w http.ResponseWriter, r *http.Request) {
@@ -83,7 +97,7 @@ func (s *server) serveRequest(srv *service, method *grpc.MethodDesc, r *http.Req
 		}
 		return nil
 	}
-	resp, err := method.Handler(srv.srv, r.Context(), decFunc, nil)
+	resp, err := method.Handler(srv.srv, r.Context(), decFunc, s.opts.Interceptor)
 	if err != nil {
 		return nil, err
 	}

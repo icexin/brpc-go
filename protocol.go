@@ -10,14 +10,6 @@ var (
 	protocols = map[string]Protocol{}
 )
 
-// type ServiceDesc = grpc.ServiceDesc
-
-// type ClientConn interface {
-// 	// Invoke performs a unary RPC and returns after the response is received
-// 	// into reply.
-// 	Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...CallOption) error
-// }
-
 // Server is the interface that must be implemented by a protocol server.
 type Server interface {
 	RegisterService(sd *grpc.ServiceDesc, ss interface{})

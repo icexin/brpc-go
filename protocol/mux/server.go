@@ -20,11 +20,11 @@ type server struct {
 	httpServer brpc.Server
 }
 
-func newServer() *server {
+func newServer(options ...brpc.ServerOption) *server {
 	return &server{
-		grpcServer: brpc.NewServer(bgrpc.ProtocolName),
-		brpcServer: brpc.NewServer(bstd.ProtocolName),
-		httpServer: brpc.NewServer(bhttp.ProtocolName),
+		grpcServer: brpc.NewServer(bgrpc.ProtocolName, options...),
+		brpcServer: brpc.NewServer(bstd.ProtocolName, options...),
+		httpServer: brpc.NewServer(bhttp.ProtocolName, options...),
 	}
 }
 
