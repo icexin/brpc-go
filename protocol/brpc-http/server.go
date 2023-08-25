@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/icexin/brpc-go"
 	"google.golang.org/grpc"
@@ -119,10 +120,13 @@ func (s *server) RegisterService(sd *grpc.ServiceDesc, srv interface{}) {
 		methods: methods,
 		srv:     srv,
 	}
+	fs := strings.Split(sd.ServiceName, ".")
+	shortName := fs[len(fs)-1]
 	s.services[sd.ServiceName] = service
-	http.HandleFunc("/"+sd.ServiceName+"/", func(w http.ResponseWriter, r *http.Request) {
-		s.handleService(service, w, r)
-	})
+	s.services[shortName] = service
+	handler := func(w http.ResponseWriter, r *http.Request) {}
+	http.HandleFunc("/"+shortName+"/", handler)
+	http.HandleFunc("/"+sd.ServiceName+"/", handler)
 }
 
 func jsonEncode(v interface{}) ([]byte, error) {
