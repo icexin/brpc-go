@@ -77,7 +77,7 @@ func (s *server) serveRequest(srv *service, method *grpc.MethodDesc, r *http.Req
 	)
 
 	switch r.Header.Get("Content-Type") {
-	case "application/json":
+	case "application/json", "":
 		enc = jsonEncode
 		dec = jsonDecode
 	case "application/proto", "application/protobuf":
