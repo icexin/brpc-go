@@ -124,7 +124,9 @@ func (s *server) RegisterService(sd *grpc.ServiceDesc, srv interface{}) {
 	shortName := fs[len(fs)-1]
 	s.services[sd.ServiceName] = service
 	s.services[shortName] = service
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		s.handleService(service, w, r)
+	}
 	http.HandleFunc("/"+shortName+"/", handler)
 	http.HandleFunc("/"+sd.ServiceName+"/", handler)
 }
