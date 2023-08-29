@@ -84,7 +84,7 @@ func (s *server) serveRequest(srv *service, method *grpc.MethodDesc, r *http.Req
 		enc = protoEncode
 		dec = protoDecode
 	default:
-		return nil, fmt.Errorf("invalid content type:%s", r.Header.Get("Content-Type"))
+		return nil, fmt.Errorf("invalid content type:%q", r.Header.Get("Content-Type"))
 	}
 
 	body, err := io.ReadAll(r.Body)
@@ -146,6 +146,9 @@ func jsonDecode(buf []byte, v interface{}) error {
 	msg, ok := v.(proto.Message)
 	if !ok {
 		return fmt.Errorf("invalid type:%T", v)
+	}
+	if len(buf) == 0 {
+		return nil
 	}
 	return protojson.Unmarshal(buf, msg)
 }
