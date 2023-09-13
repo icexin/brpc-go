@@ -106,7 +106,7 @@ func (s *server) readRequest(codec *codec) (reqMeta *metapb.RpcMeta, srv interfa
 			return
 		}
 		// discard body
-		_, err = codec.ReadBodyBytes(true, nil)
+		codec.ReadBodyBytes(true, nil)
 		return
 	}
 
