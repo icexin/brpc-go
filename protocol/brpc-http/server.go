@@ -84,7 +84,8 @@ func (s *server) serveRequest(srv *service, method *grpc.MethodDesc, r *http.Req
 		enc = protoEncode
 		dec = protoDecode
 	default:
-		return nil, fmt.Errorf("invalid content type:%q", r.Header.Get("Content-Type"))
+		enc = jsonEncode
+		dec = jsonDecode
 	}
 
 	body, err := io.ReadAll(r.Body)
