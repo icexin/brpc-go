@@ -133,14 +133,14 @@ func (c *codec) Write(meta *metapb.RpcMeta, x interface{}, cw compressWriter) er
 //
 // user must not retain the returned buffer
 func (c *codec) readBuffer(n int) ([]byte, error) {
-	if n < c.r.Size() {
-		buf, err := c.r.Peek(n)
-		if err != nil {
-			return nil, err
-		}
-		c.r.Discard(n)
-		return buf, nil
-	}
+	// if n < c.r.Size() {
+	// 	buf, err := c.r.Peek(n)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	c.r.Discard(n)
+	// 	return buf, nil
+	// }
 	buf := make([]byte, n)
 	_, err := io.ReadFull(c.r, buf)
 	return buf, err

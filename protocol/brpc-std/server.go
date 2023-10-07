@@ -64,6 +64,7 @@ func (s *server) ServeConn(conn net.Conn) {
 			defer func() {
 				r := recover()
 				if r != nil {
+					log.Printf("panic:%v", r)
 					debug.PrintStack()
 					s.sendResponse(writeLock, codec, fmt.Errorf("panic:%v", r), req, nil, nil)
 				}
