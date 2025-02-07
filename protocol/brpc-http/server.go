@@ -151,7 +151,10 @@ func jsonDecode(buf []byte, v interface{}) error {
 	if len(buf) == 0 {
 		return nil
 	}
-	return protojson.Unmarshal(buf, msg)
+	opts := protojson.UnmarshalOptions{
+		DiscardUnknown: true,
+	}
+	return opts.Unmarshal(buf, msg)
 }
 
 func protoEncode(v interface{}) ([]byte, error) {
